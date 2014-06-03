@@ -135,7 +135,7 @@ namespace ItemSackFix
                         {
                             if (null != rf.ChunkData[i])
                             {
-                                LibNbt.Tags.NbtCompound nbtRoot = rf.ChunkData[i].GetRootNBT();
+                                fNbt.NbtCompound nbtRoot = rf.ChunkData[i].GetRootNBT();
 
 #if DEBUG
                                 using (StreamWriter sw = new StreamWriter(InputToOutputPath(mcaFile) + "_nbt_" + i + ".txt", false, Encoding.UTF8)) {
@@ -144,34 +144,33 @@ namespace ItemSackFix
 #endif
 
                                 // TileEntities差し替え
-                                LibNbt.Tags.NbtList tileEntities = nbtRoot.Query<LibNbt.Tags.NbtList>("//Level/TileEntities");
-                                foreach (LibNbt.Tags.NbtCompound tileEntity in tileEntities.Tags)
+                                fNbt.NbtList tileEntities = fNbt.NbtQuery.Get<fNbt.NbtList>(nbtRoot, "//Level/TileEntities");
+                                foreach (fNbt.NbtCompound tileEntity in tileEntities)
                                 {
-                                    try
-                                    {
-                                        foreach (LibNbt.Tags.NbtCompound item in tileEntity.Get<LibNbt.Tags.NbtList>("Items").Tags)
+                                    fNbt.NbtList items;
+									if (tileEntity.TryGet<fNbt.NbtList>("Items", out items))
+									{
+                                        foreach (fNbt.NbtCompound item in items)
                                             FixItemSackData(item, itemSackId);
-                                    }
-                                    catch (KeyNotFoundException)
-                                    {
                                     }
                                 }
 
                                 // Entities差し替え
-                                LibNbt.Tags.NbtList entities = nbtRoot.Query<LibNbt.Tags.NbtList>("//Level/Entities");
-                                foreach (LibNbt.Tags.NbtCompound entity in entities.Tags)
+								fNbt.NbtList entities = fNbt.NbtQuery.Get<fNbt.NbtList>(nbtRoot, "//Level/Entities");
+                                foreach (fNbt.NbtCompound entity in entities)
                                 {
-                                    try
-                                    {
-                                        // チェストトロッコ等のインベントリ
-                                        foreach (LibNbt.Tags.NbtCompound item in entity.Get<LibNbt.Tags.NbtList>("Items").Tags)
-                                            FixItemSackData(item, itemSackId);
-                                        // ドロップアイテム
-                                        FixItemSackData(entity.Get<LibNbt.Tags.NbtCompound>("Item"), itemSackId);
-                                    }
-                                    catch (KeyNotFoundException)
-                                    {
-                                    }
+									fNbt.NbtList items;
+                                    // チェストトロッコ等のインベントリ
+									if (entity.TryGet<fNbt.NbtList>("Items", out items))
+									{
+										foreach (fNbt.NbtCompound item in items)
+											FixItemSackData(item, itemSackId);
+									}
+
+									fNbt.NbtCompound tag;
+                                    // ドロップアイテム
+									if (entity.TryGet<fNbt.NbtCompound>("Item", out tag))
+	                                    FixItemSackData(tag, itemSackId);
                                 }
 
                                 // チャンクデータ更新
@@ -199,45 +198,35 @@ namespace ItemSackFix
             return Path.GetFullPath(outputDir) + Path.GetFullPath(path).Substring(Path.GetFullPath(inputDir).Length);
         }
 
-        private void FixPlayerSackData(string nbtFile, string nbtOutputFile, string nbtPath)
-        {
-            using (LibNbt.NbtFile nbt = new LibNbt.NbtFile(nbtFile))
-            {
-                nbt.LoadFile();
+		private void FixPlayerSackData(string nbtFile, string nbtOutputFile, string nbtPath)
+		{
+			fNbt.NbtFile nbt = new fNbt.NbtFile(nbtFile);
 
-                LibNbt.Tags.NbtList playerInv = nbt.Query<LibNbt.Tags.NbtList>(nbtPath);
+			fNbt.NbtList playerInv = fNbt.NbtQuery.Get<fNbt.NbtList>(nbt.RootTag, nbtPath);
 
-                foreach (LibNbt.Tags.NbtCompound item in playerInv.Tags)
-                {
-                    FixItemSackData(item, int.Parse(itemSackID.Text));
-                }
+			foreach (fNbt.NbtCompound item in playerInv)
+			{
+				FixItemSackData(item, int.Parse(itemSackID.Text));
+			}
 
-                nbt.SaveFile(nbtOutputFile);
-            }
-        }
-        private void FixItemSackData(LibNbt.Tags.NbtCompound item, int itemSackId)
-        {
-            if (((LibNbt.Tags.NbtShort)item["id"]).Value == (short)itemSackId)
-            {
-                try
-                {
-                    LibNbt.Tags.NbtCompound tag = item.Get<LibNbt.Tags.NbtCompound>("tag");
+			nbt.SaveToFile(nbtOutputFile, fNbt.NbtCompression.GZip);
+		}
+		private void FixItemSackData(fNbt.NbtCompound item, int itemSackId)
+		{
+			if (((fNbt.NbtShort)item["id"]).Value == (short)itemSackId)
+			{
+				fNbt.NbtCompound tag;
 
-                    if (tag["type"].GetType() != typeof(LibNbt.Tags.NbtShort))
-                        return;
+				if (!item.TryGet<fNbt.NbtCompound>("tag", out tag) || tag["type"].GetType() != typeof(fNbt.NbtShort))
+					return;
 
-                    LibNbt.Tags.NbtShort type = (LibNbt.Tags.NbtShort)tag["type"];
+				fNbt.NbtShort type = (fNbt.NbtShort)tag["type"];
 
-                    tag["type"] = new LibNbt.Tags.NbtString("type", VanillaIDTable.BlockName[type.Value]);
+				tag["type"] = new fNbt.NbtString("type", VanillaIDTable.BlockName[type.Value]);
 
-                    System.Diagnostics.Debug.WriteLine("Converted type: " + type.Value + "=>" + tag.Get<LibNbt.Tags.NbtString>("type").Value);
-                }
-                catch (KeyNotFoundException)
-                {
-                    System.Diagnostics.Debug.WriteLine("Don't use ItemSack");
-                }
-            }
-        }
+				System.Diagnostics.Debug.WriteLine("Converted type: " + type.Value + "=>" + tag.Get<fNbt.NbtString>("type").Value);
+			}
+		}
 
         private void CheckFixPreparation()
         {
@@ -268,19 +257,18 @@ namespace ItemSackFix
             if (string.Empty == modid)
                 return false;
 
-            using (LibNbt.NbtFile nbt = new LibNbt.NbtFile(filename))
-            {
-                nbt.LoadFile();
-                LibNbt.Tags.NbtList modList = nbt.Query<LibNbt.Tags.NbtList>("//FML/ModList");
+            fNbt.NbtFile nbt = new fNbt.NbtFile(filename);
 
-                foreach (LibNbt.Tags.NbtCompound mod in modList.Tags)
+			fNbt.NbtList modList = fNbt.NbtQuery.Get<fNbt.NbtList>(nbt.RootTag, "//FML/ModList");
+
+                foreach (fNbt.NbtCompound mod in modList)
                 {
-                    if (mod.Get<LibNbt.Tags.NbtString>("ModId").Value == modid)
+                    if (mod.Get<fNbt.NbtString>("ModId").Value == modid)
                         return true;
                 }
 
                 return false;
-            }
+            
         }
 
         private enum FMLItemType
@@ -299,20 +287,17 @@ namespace ItemSackFix
 
             string fmlKeyName = ((itemType == FMLItemType.Block) ? "\u0001" : "\u0002") + modid + ":" + itemname;
 
-            using (LibNbt.NbtFile nbt = new LibNbt.NbtFile(filename))
-            {
-                nbt.LoadFile();
+			fNbt.NbtFile nbt = new fNbt.NbtFile(filename);
 
-                LibNbt.Tags.NbtList idList = nbt.Query<LibNbt.Tags.NbtList>("//FML/ItemData");
+			fNbt.NbtList idList = fNbt.NbtQuery.Get<fNbt.NbtList>(nbt.RootTag, "//FML/ItemData");
 
-                foreach (LibNbt.Tags.NbtCompound itemData in idList.Tags)
+                foreach (fNbt.NbtCompound itemData in idList)
                 {
-                    if (itemData.Get<LibNbt.Tags.NbtString>("K").Value == fmlKeyName)
-                        return itemData.Get<LibNbt.Tags.NbtInt>("V").Value;
+                    if (itemData.Get<fNbt.NbtString>("K").Value == fmlKeyName)
+                        return itemData.Get<fNbt.NbtInt>("V").Value;
                 }
 
                 return -1;
-            }
         }
 
         private int GetChunkCount(string filename)

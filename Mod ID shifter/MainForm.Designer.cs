@@ -32,6 +32,7 @@
 			this.inputRef = new System.Windows.Forms.Button();
 			this.label1 = new System.Windows.Forms.Label();
 			this.modInfoGroupBox = new System.Windows.Forms.GroupBox();
+			this.idMisalignmentFixButton = new System.Windows.Forms.Button();
 			this.useItemIDText = new System.Windows.Forms.TextBox();
 			this.label4 = new System.Windows.Forms.Label();
 			this.useBlockIDText = new System.Windows.Forms.TextBox();
@@ -45,7 +46,6 @@
 			this.label6 = new System.Windows.Forms.Label();
 			this.updateLevelDatButton = new System.Windows.Forms.Button();
 			this.saveLevelDatButton = new System.Windows.Forms.Button();
-			this.idMisalignmentFixButton = new System.Windows.Forms.Button();
 			this.modInfoGroupBox.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.blockIDShiftNum)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.itemIDShiftNum)).BeginInit();
@@ -92,6 +92,18 @@
 			this.modInfoGroupBox.TabIndex = 5;
 			this.modInfoGroupBox.TabStop = false;
 			this.modInfoGroupBox.Text = "MOD情報";
+			// 
+			// idMisalignmentFixButton
+			// 
+			this.idMisalignmentFixButton.Enabled = false;
+			this.idMisalignmentFixButton.Location = new System.Drawing.Point(8, 90);
+			this.idMisalignmentFixButton.Name = "idMisalignmentFixButton";
+			this.idMisalignmentFixButton.Size = new System.Drawing.Size(75, 23);
+			this.idMisalignmentFixButton.TabIndex = 14;
+			this.idMisalignmentFixButton.Text = "IDズレ修正";
+			this.idMisalignmentFixButton.UseVisualStyleBackColor = true;
+			this.idMisalignmentFixButton.Visible = false;
+			this.idMisalignmentFixButton.Click += new System.EventHandler(this.idMisalignmentFixButton_Click);
 			// 
 			// useItemIDText
 			// 
@@ -225,18 +237,6 @@
 			this.saveLevelDatButton.Text = "上書き保存";
 			this.saveLevelDatButton.UseVisualStyleBackColor = true;
 			this.saveLevelDatButton.Click += new System.EventHandler(this.saveLevelDatButton_Click);
-			// 
-			// idMisalignmentFixButton
-			// 
-			this.idMisalignmentFixButton.Enabled = false;
-			this.idMisalignmentFixButton.Location = new System.Drawing.Point(8, 90);
-			this.idMisalignmentFixButton.Name = "idMisalignmentFixButton";
-			this.idMisalignmentFixButton.Size = new System.Drawing.Size(75, 23);
-			this.idMisalignmentFixButton.TabIndex = 14;
-			this.idMisalignmentFixButton.Text = "IDズレ修正";
-			this.idMisalignmentFixButton.UseVisualStyleBackColor = true;
-			this.idMisalignmentFixButton.Visible = false;
-			this.idMisalignmentFixButton.Click += new System.EventHandler(this.idMisalignmentFixButton_Click);
 			// 
 			// MainForm
 			// 

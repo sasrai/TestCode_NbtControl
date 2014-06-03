@@ -165,5 +165,54 @@ namespace Mod_ID_shifter
 			//e.DrawBackground();
 			e.DrawText();
 		}
+
+		private void toolStripIDCopy_Click(object sender, EventArgs e)
+		{
+			if (null == this.ModInfo)
+				return;
+
+			ListView selectLV = null;
+			string copyStr = "";
+
+			switch (IDListTabControl.SelectedIndex)
+			{
+				case 0:
+					copyStr = this.ModInfo.ModID + " - BlockID\r\n";
+					selectLV = blockIDListView;
+					break;
+				case 1:
+					copyStr = this.ModInfo.ModID + " - ItemID\r\n";
+					selectLV = itemIDListView;
+					break;
+				default:
+					selectLV = null;
+					break;
+			}
+
+			if (selectLV.Items.Count < 1)
+			{
+				MessageBox.Show("こぴれないよ！");
+				return;
+			}
+
+			foreach (ListViewItem id in selectLV.Items)
+			{
+				copyStr += id.SubItems[0].Text + "\t#" + id.SubItems[1].Text + "\r\n";
+			}
+
+			Clipboard.SetText(copyStr, TextDataFormat.Text);
+
+			MessageBox.Show("こぴるよ！");
+		}
+
+		private void contextMenu_Opening(object sender, CancelEventArgs e)
+		{
+			ContextMenuStrip senderMenu = (ContextMenuStrip)sender;
+
+			if (!(senderMenu.SourceControl is ListView))
+			{
+				e.Cancel = true;
+			}
+		}
 	}
 }

@@ -157,24 +157,24 @@ namespace RegionFileAccess.Chunk
             }
         }
 
-        public LibNbt.Tags.NbtCompound GetRootNBT()
+        public fNbt.NbtCompound GetRootNBT()
         {
-            LibNbt.NbtFile nbt = new LibNbt.NbtFile();
-            nbt.LoadFile(new MemoryStream(chunkNBTBinary), false);
+            fNbt.NbtFile nbt = new fNbt.NbtFile();
+            nbt.LoadFromStream(new MemoryStream(chunkNBTBinary), fNbt.NbtCompression.None);
             return nbt.RootTag;
         }
-        public void SetRootNbt(LibNbt.Tags.NbtCompound rootNbtCompound)
+        public void SetRootNbt(fNbt.NbtCompound rootNbtCompound)
         {
             // NBTデータを更新した場合にはキャッシュ無効化
             doUseCache = false;
             cacheCompressData = null;
 
-            LibNbt.NbtFile nbt = new LibNbt.NbtFile();
+            fNbt.NbtFile nbt = new fNbt.NbtFile();
             nbt.RootTag = rootNbtCompound;
 
             using (MemoryStream nbtStream = new MemoryStream())
             {
-                nbt.SaveFile(nbtStream, false);
+                nbt.SaveToStream(nbtStream, fNbt.NbtCompression.None);
                 nbtStream.Close();
                 chunkNBTBinary = nbtStream.ToArray();
             }

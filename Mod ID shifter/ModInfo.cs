@@ -30,7 +30,7 @@ namespace Mod_ID_shifter
 		public int BlockIDShiftNum { get; set; }
 		public int ItemIDShiftNum { get; set; }
 
-		public ModInfo(string modId, LibNbt.Tags.NbtList itemList)
+		public ModInfo(string modId, fNbt.NbtList itemList)
 		{
 			if (itemList.Name != "ItemData")
 				throw new ArgumentException("多分FMLのItemDataじゃ無いんですがコレ…");
@@ -42,17 +42,17 @@ namespace Mod_ID_shifter
 			LoadItemIDFromItemList(itemList);
 		}
 
-		private void LoadBlockIDFromItemList(LibNbt.Tags.NbtList itemList) { LoadIDFromItemList(blockIdList, "\u0001", itemList); }
-		private void LoadItemIDFromItemList(LibNbt.Tags.NbtList itemList) { LoadIDFromItemList(itemIdList, "\u0002", itemList); }
-		private void LoadIDFromItemList(Dictionary<string, int> registList, string header, LibNbt.Tags.NbtList itemList)
+		private void LoadBlockIDFromItemList(fNbt.NbtList itemList) { LoadIDFromItemList(blockIdList, "\u0001", itemList); }
+		private void LoadItemIDFromItemList(fNbt.NbtList itemList) { LoadIDFromItemList(itemIdList, "\u0002", itemList); }
+		private void LoadIDFromItemList(Dictionary<string, int> registList, string header, fNbt.NbtList itemList)
 		{
-			foreach (LibNbt.Tags.NbtCompound itemData in itemList.Tags)
+			foreach (fNbt.NbtCompound itemData in itemList)
 			{
-				string key = itemData.Get<LibNbt.Tags.NbtString>("K").Value;
+				string key = itemData.Get<fNbt.NbtString>("K").Value;
 
 				if (key.IndexOf(header) == 0 && key.Substring(1).StartsWith(this.ModID))
 				{
-					registList.Add(key.Substring(1), itemData.Get<LibNbt.Tags.NbtInt>("V").Value);
+					registList.Add(key.Substring(1), itemData.Get<fNbt.NbtInt>("V").Value);
 				}
 			}
 		}
@@ -158,18 +158,18 @@ namespace Mod_ID_shifter
 			return result;
 		}
 
-		public void MargeNBTItemData(LibNbt.Tags.NbtList itemList)
+		public void MargeNBTItemData(fNbt.NbtList itemList)
 		{
 			var newBlockID = GetShiftedBlockIDs();
 			var newItemID = GetShiftedItemIDs();
 
 			foreach (var block in newBlockID)
 			{
-				foreach (LibNbt.Tags.NbtCompound itemData in itemList.Tags)
+				foreach (fNbt.NbtCompound itemData in itemList)
 				{
-					if (itemData.Get<LibNbt.Tags.NbtString>("K").Value == ("\u0001" + block.Key))
+					if (itemData.Get<fNbt.NbtString>("K").Value == ("\u0001" + block.Key))
 					{
-						itemData.Get<LibNbt.Tags.NbtInt>("V").Value = block.Value;
+						itemData.Get<fNbt.NbtInt>("V").Value = block.Value;
 						break;
 					}
 				}
@@ -177,11 +177,11 @@ namespace Mod_ID_shifter
 
 			foreach (var item in newItemID)
 			{
-				foreach (LibNbt.Tags.NbtCompound itemData in itemList.Tags)
+				foreach (fNbt.NbtCompound itemData in itemList)
 				{
-					if (itemData.Get<LibNbt.Tags.NbtString>("K").Value == ("\u0002" + item.Key))
+					if (itemData.Get<fNbt.NbtString>("K").Value == ("\u0002" + item.Key))
 					{
-						itemData.Get<LibNbt.Tags.NbtInt>("V").Value = item.Value;
+						itemData.Get<fNbt.NbtInt>("V").Value = item.Value;
 						break;
 					}
 				}

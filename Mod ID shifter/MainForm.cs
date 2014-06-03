@@ -12,7 +12,7 @@ namespace Mod_ID_shifter
 {
 	public partial class MainForm : Form
 	{
-		LibNbt.NbtFile levelNbt = null;
+		fNbt.NbtFile levelNbt = null;
 		string loadingNbtFilePath = null;
 		ModInfo selectedModInfo = null;
 
@@ -47,13 +47,10 @@ namespace Mod_ID_shifter
 			saveLevelDatButton.Enabled = false;
 			updateLevelDatButton.Enabled = false;
 
-			if (null != levelNbt)
-				levelNbt.Dispose();
-
 			loadingNbtFilePath = inputPath.Text;
 
-			levelNbt = new LibNbt.NbtFile();
-			levelNbt.LoadFile(loadingNbtFilePath);
+			levelNbt = new fNbt.NbtFile();
+			levelNbt.LoadFromFile(loadingNbtFilePath);
 		}
 
 		private void NbtSave()
@@ -71,20 +68,20 @@ namespace Mod_ID_shifter
 				}
 				catch (IOException) { backupNum++; }
 			}
-			levelNbt.SaveFile(loadingNbtFilePath);
+			levelNbt.SaveToFile(loadingNbtFilePath, fNbt.NbtCompression.GZip);
 		}
 
-		private List<LibNbt.Tags.NbtCompound> GetModListFromNBT(LibNbt.Tags.NbtCompound rootNbt)
+		private List<fNbt.NbtCompound> GetModListFromNBT(fNbt.NbtCompound rootNbt)
 		{
-			LibNbt.Tags.NbtList nbtModList = rootNbt.Query<LibNbt.Tags.NbtList>("//FML/ModList");
+			fNbt.NbtList nbtModList = fNbt.NbtQuery.Get<fNbt.NbtList>(levelNbt.RootTag, "//FML/ModList");// (fNbt.NbtList)rootNbt["FML"]["ModList"];
 			if (null == nbtModList)
 			{
 				System.Diagnostics.Debug.WriteLine("Not 1.7.x level.dat");
 				return null;
 			}
 
-			List<LibNbt.Tags.NbtCompound> result = new List<LibNbt.Tags.NbtCompound>();
-			foreach (LibNbt.Tags.NbtCompound modInfo in nbtModList.Tags)
+			List<fNbt.NbtCompound> result = new List<fNbt.NbtCompound>();
+			foreach (fNbt.NbtCompound modInfo in nbtModList)
 				result.Add(modInfo);
 
 			return result;
@@ -98,11 +95,11 @@ namespace Mod_ID_shifter
 			modList.Items.Clear();
 
 			// コンボボックスにModIdを追加
-			foreach (LibNbt.Tags.NbtCompound modInfo in GetModListFromNBT(levelNbt.RootTag))
+			foreach (fNbt.NbtCompound modInfo in GetModListFromNBT(levelNbt.RootTag))
 			{
 				try
 				{
-					modList.Items.Add(modInfo.Get<LibNbt.Tags.NbtString>("ModId").Value);
+					modList.Items.Add(modInfo.Get<fNbt.NbtString>("ModId").Value);
 				}
 				catch (KeyNotFoundException)
 				{
@@ -136,7 +133,7 @@ namespace Mod_ID_shifter
 
 			try
 			{
-				selectedModInfo = new ModInfo(modId, levelNbt.Query<LibNbt.Tags.NbtList>("//FML/ItemData"));
+				selectedModInfo = new ModInfo(modId, fNbt.NbtQuery.Get<fNbt.NbtList>(levelNbt.RootTag, "//FML/ItemData"));//(fNbt.NbtList)levelNbt.RootTag["FML"]["ItemData"]);
 			}
 			catch (KeyNotFoundException)
 			{
@@ -150,7 +147,7 @@ namespace Mod_ID_shifter
 			useIDText_TextChanged(useItemIDText, null);
 			useItemIDText.Text = selectedModInfo.GetItemNumberIDListString();
 
-			ModInfo allInfo = new ModInfo("", levelNbt.Query<LibNbt.Tags.NbtList>("//FML/ItemData"));
+			ModInfo allInfo = new ModInfo("", fNbt.NbtQuery.Get<fNbt.NbtList>(levelNbt.RootTag, "//FML/ItemData"));//(fNbt.NbtList)levelNbt.RootTag["FML"]["ItemData"]);
 
 			// ブロックIDのずらせる範囲を簡易調整
 			blockIDShiftNum.Value = 0;
@@ -223,7 +220,7 @@ namespace Mod_ID_shifter
 		private void blockIDShiftNum_ValueChanged(object sender, EventArgs e)
 		{
 			selectedModInfo.BlockIDShiftNum = (int)blockIDShiftNum.Value;
-			if (!CheckConflictID(selectedModInfo, new List<string>(modList.Items.OfType<string>()), levelNbt.Query<LibNbt.Tags.NbtList>("//FML/ItemData")))
+			if (!CheckConflictID(selectedModInfo, new List<string>(modList.Items.OfType<string>()), fNbt.NbtQuery.Get<fNbt.NbtList>(levelNbt.RootTag, "//FML/ItemData")))//(fNbt.NbtList)levelNbt.RootTag["FML"]["ItemData"]))
 				blockIDShiftNum.Value++;
 
 			useBlockIDText.Text = selectedModInfo.GetBlockNumberIDListString();
@@ -235,7 +232,7 @@ namespace Mod_ID_shifter
 		private void itemIDShiftNum_ValueChanged(object sender, EventArgs e)
 		{
 			selectedModInfo.ItemIDShiftNum = (int)itemIDShiftNum.Value;
-			if (!CheckConflictID(selectedModInfo, new List<string>(modList.Items.OfType<string>()), levelNbt.Query<LibNbt.Tags.NbtList>("//FML/ItemData")))
+			if (!CheckConflictID(selectedModInfo, new List<string>(modList.Items.OfType<string>()), fNbt.NbtQuery.Get<fNbt.NbtList>(levelNbt.RootTag, "//FML/ItemData")))//(fNbt.NbtList)levelNbt.RootTag["FML"]["ItemData"]))
 				blockIDShiftNum.Value++;
 
 			useItemIDText.Text = selectedModInfo.GetItemNumberIDListString();
@@ -250,7 +247,7 @@ namespace Mod_ID_shifter
 		/// <param name="modIdList">チェックするModIDリスト</param>
 		/// <param name="originalNBTItemDataList">level.datのItemDataリスト</param>
 		/// <returns>true=干渉無し、false=干渉有り</returns>
-		private bool CheckConflictID(ModInfo checkModInfo, List<string> modIdList, LibNbt.Tags.NbtList originalNBTItemDataList)
+		private bool CheckConflictID(ModInfo checkModInfo, List<string> modIdList, fNbt.NbtList originalNBTItemDataList)
 		{
 			// ID被りチェック
 			try
@@ -260,19 +257,23 @@ namespace Mod_ID_shifter
 					if (modid == checkModInfo.ModID)
 						continue;
 
-					ModInfo mi = new ModInfo(modid, originalNBTItemDataList);
+					//System.Diagnostics.Debug.WriteLine("CheckConflictID: checkModInfo=" + checkModInfo.ModID + "modid=" + modid);
 
-					foreach (int id in checkModInfo.BlockIDs.Values)
+					ModInfo mi = new ModInfo(modid, originalNBTItemDataList);
+					//System.Diagnostics.Debug.WriteLine("                 " + checkModInfo.GetBlockNumberIDListString() + " // " + mi.GetBlockNumberIDListString());
+					//System.Diagnostics.Debug.WriteLine("                 " + checkModInfo.GetItemNumberIDListString() + " // " + mi.GetItemNumberIDListString());
+
+					foreach (int id in checkModInfo.GetShiftedBlockIDs().Values)
 						if (mi.BlockIDs.Values.Contains(id))
 							throw new ApplicationException("ID被ってるよ！");
-					foreach (int id in checkModInfo.ItemIDs.Values)
+					foreach (int id in checkModInfo.GetShiftedBlockIDs().Values)
 						if (mi.ItemIDs.Values.Contains(id))
 							throw new ApplicationException("ID被ってるよ！");
 				}
 			}
 			catch (ApplicationException)
 			{
-				MessageBox.Show("移動先が別IDと被ってる為ID移動を適用できませんっ");
+				//MessageBox.Show("移動先が別IDと被ってる為ID移動を適用できませんっ");
 				return false;
 			}
 
@@ -281,10 +282,13 @@ namespace Mod_ID_shifter
 
 		private void updateLevelDatButton_Click(object sender, EventArgs e)
 		{
-			if (!CheckConflictID(selectedModInfo, new List<string>(modList.Items.OfType<string>()), levelNbt.Query<LibNbt.Tags.NbtList>("//FML/ItemData")))
+			if (!CheckConflictID(selectedModInfo, new List<string>(modList.Items.OfType<string>()), fNbt.NbtQuery.Get<fNbt.NbtList>(levelNbt.RootTag, "//FML/ItemData")))//(fNbt.NbtList)levelNbt.RootTag["FML"]["ItemData"]))
+			{
+				MessageBox.Show("移動先が別IDと被ってる為ID移動を適用できませんっ");
 				return;
+			}
 
-			selectedModInfo.MargeNBTItemData(levelNbt.Query<LibNbt.Tags.NbtList>("//FML/ItemData"));
+			selectedModInfo.MargeNBTItemData(fNbt.NbtQuery.Get<fNbt.NbtList>(levelNbt.RootTag, "//FML/ItemData"));//(fNbt.NbtList)levelNbt.RootTag["FML"]["ItemData"]);
 
 			UpdateModInfo(selectedModInfo.ModID);
 
@@ -337,13 +341,15 @@ namespace Mod_ID_shifter
 
 			foreach (var block in selectedModInfo.BlockIDs)
 			{
+				if (selectedModInfo.ItemIDs[block.Key] == block.Value)
+					continue;
 				string logmsg = "[IDMisalignmentFix] " + block.Key + " = " + selectedModInfo.ItemIDs[block.Key] + " -> " + block.Value;
 				fixLog += logmsg + "\r\n";
 				System.Diagnostics.Trace.WriteLine(logmsg);
 				selectedModInfo.ItemIDs[block.Key] = block.Value;
 			}
 
-			selectedModInfo.MargeNBTItemData(levelNbt.Query<LibNbt.Tags.NbtList>("//FML/ItemData"));
+			selectedModInfo.MargeNBTItemData(fNbt.NbtQuery.Get<fNbt.NbtList>(levelNbt.RootTag, "//FML/ItemData"));//(fNbt.NbtList)levelNbt.RootTag["FML"]["ItemData"]);
 
 			LogViewer lv = new LogViewer(fixLog);
 			lv.ShowDialog(this);

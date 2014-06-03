@@ -28,6 +28,7 @@
 		/// </summary>
 		private void InitializeComponent()
 		{
+			this.components = new System.ComponentModel.Container();
 			System.Windows.Forms.ListViewItem listViewItem1 = new System.Windows.Forms.ListViewItem("");
 			System.Windows.Forms.ListViewItem listViewItem2 = new System.Windows.Forms.ListViewItem("");
 			this.IDListTabControl = new System.Windows.Forms.TabControl();
@@ -35,12 +36,15 @@
 			this.blockIDListView = new System.Windows.Forms.ListView();
 			this.numIDColumnHeaderB = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
 			this.registNameColumnHeaderB = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+			this.contextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
+			this.toolStripIDCopy = new System.Windows.Forms.ToolStripMenuItem();
 			this.tabPage2 = new System.Windows.Forms.TabPage();
 			this.itemIDListView = new System.Windows.Forms.ListView();
 			this.numIDColumnHeaderI = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
 			this.registNameColumnHeaderI = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
 			this.IDListTabControl.SuspendLayout();
 			this.tabPage1.SuspendLayout();
+			this.contextMenu.SuspendLayout();
 			this.tabPage2.SuspendLayout();
 			this.SuspendLayout();
 			// 
@@ -78,6 +82,7 @@
 			this.blockIDListView.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.numIDColumnHeaderB,
             this.registNameColumnHeaderB});
+			this.blockIDListView.ContextMenuStrip = this.contextMenu;
 			this.blockIDListView.GridLines = true;
 			this.blockIDListView.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.None;
 			listViewItem1.Checked = true;
@@ -102,6 +107,21 @@
 			// 
 			this.registNameColumnHeaderB.Width = 192;
 			// 
+			// contextMenu
+			// 
+			this.contextMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.toolStripIDCopy});
+			this.contextMenu.Name = "contextMenu";
+			this.contextMenu.Size = new System.Drawing.Size(163, 48);
+			this.contextMenu.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenu_Opening);
+			// 
+			// toolStripIDCopy
+			// 
+			this.toolStripIDCopy.Name = "toolStripIDCopy";
+			this.toolStripIDCopy.Size = new System.Drawing.Size(162, 22);
+			this.toolStripIDCopy.Text = "ID一覧をコピー";
+			this.toolStripIDCopy.Click += new System.EventHandler(this.toolStripIDCopy_Click);
+			// 
 			// tabPage2
 			// 
 			this.tabPage2.Controls.Add(this.itemIDListView);
@@ -121,6 +141,7 @@
 			this.itemIDListView.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.numIDColumnHeaderI,
             this.registNameColumnHeaderI});
+			this.itemIDListView.ContextMenuStrip = this.contextMenu;
 			this.itemIDListView.GridLines = true;
 			this.itemIDListView.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.None;
 			listViewItem2.Checked = true;
@@ -154,6 +175,7 @@
 			this.Load += new System.EventHandler(this.IDListWindow_Load);
 			this.IDListTabControl.ResumeLayout(false);
 			this.tabPage1.ResumeLayout(false);
+			this.contextMenu.ResumeLayout(false);
 			this.tabPage2.ResumeLayout(false);
 			this.ResumeLayout(false);
 
@@ -170,5 +192,7 @@
 		private System.Windows.Forms.ListView itemIDListView;
 		private System.Windows.Forms.ColumnHeader numIDColumnHeaderI;
 		private System.Windows.Forms.ColumnHeader registNameColumnHeaderI;
+		private System.Windows.Forms.ContextMenuStrip contextMenu;
+		private System.Windows.Forms.ToolStripMenuItem toolStripIDCopy;
 	}
 }
